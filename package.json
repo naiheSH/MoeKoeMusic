@@ -142,6 +142,9 @@
   "license": "MIT",
   "description": "MoeKoe Music",
   "devDependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.2",
     "@vue/compiler-sfc": "^3.5.12",
@@ -157,11 +160,13 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
+    "crypto-js": "^4.2.0",
     "electron-is-dev": "^3.0.1",
     "electron-log": "^5.2.0",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.6.2",
     "music-metadata": "^11.7.3",
+    "pako": "^2.1.0",
     "pinia": "^3.0.0",
     "pinia-plugin-persistedstate": "^4.1.1",
     "tree-kill": "^1.2.2",

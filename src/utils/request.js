@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { MoeAuthStore } from '../stores/store';
 
-// 创建一个 axios 实例
+// 创建一个 axios 实例，用于调用本地后端服务
 const httpClient = axios.create({
     baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:6521',
     timeout: 10000,
@@ -11,6 +11,58 @@ const httpClient = axios.create({
     },
     withCredentials: true,
 });
+
+// 创建一个 axios 实例，用于直接调用酷狗音乐API
+export const kgHttpClient = axios.create({
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
+});
+
+// 酷狗音乐API请求拦截器
+kgHttpClient.interceptors.request.use(
+    config => {
+        const MoeAuth = MoeAuthStore();
+        const token = MoeAuth.UserInfo?.token;
+        const userid = MoeAuth.UserInfo?.userid;
+
+        if (token && userid) {
+            const authStr = `token=${encodeURIComponent(token)};userid=${encodeURIComponent(userid)}`;
+            config.headers = {
+                ...config.headers,
+                Authorization: authStr
+            };
+        }
+        return config;
+    },
+    error => Promise.reject(error)
+);
+
+// 酷狗音乐API响应拦截器
+kgHttpClient.interceptors.response.use(
+    response => {
+        return response.data;
+    },
+    error => {
+        if (error.response) {
+            console.error(`http error status:${error.response.status}`,error.response.data);
+            if (error.response?.data?.data) {
+                console.error(error.response.data.data);
+            } else {
+                $message.error('服务器错误,请稍后再试!');
+            }
+        } else if (error.request) {
+            console.error('No response received:', error.request);
+            $message.error('服务器未响应,请稍后再试!');
+        } else {
+            console.error('Error:', error.message);
+            $message.error('请求错误,请稍后再试!');
+        }
+        return Promise.reject(error);
+    }
+);
 
 // 请求拦截器
 httpClient.interceptors.request.use(
@@ -46,7 +98,12 @@ httpClient.interceptors.response.use(
             }
         } else if (error.request) {
             console.error('No response received:', error.request);
-            $message.error('服务器未响应,请稍后再试!');
+            // 检查是否是本地后端服务不可用
+            if (httpClient.defaults.baseURL === 'http://127.0.0.1:6521') {
+                $message.error('本地后端服务未启动，请先启动后端服务或使用云服务API');
+            } else {
+                $message.error('服务器未响应,请稍后再试!');
+            }
         } else {
             console.error('Error:', error.message);
             $message.error('请求错误,请稍后再试!');
@@ -55,10 +112,12 @@ httpClient.interceptors.response.use(
     }
 );
 
+import { mockHttpClient } from './apiManager';
+
 // 封装 GET 请求
 export const get = async (url, params = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await httpClient.get(url, { params, ...config });
+        const response = await mockHttpClient.get(url, { params, ...config });
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -70,7 +129,7 @@ export const get = async (url, params = {}, config = {}, onSuccess = null, onErr
 // 封装 POST 请求
 export const post = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await httpClient.post(url, data, config);
+        const response = await mockHttpClient.post(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -82,7 +141,7 @@ export const post = async (url, data = {}, config = {}, onSuccess = null, onErro
 // 封装 PUT 请求
 export const put = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await httpClient.put(url, data, config);
+        const response = await mockHttpClient.put(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -94,7 +153,7 @@ export const put = async (url, data = {}, config = {}, onSuccess = null, onError
 // 封装 DELETE 请求
 export const del = async (url, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await httpClient.delete(url, config);
+        const response = await mockHttpClient.delete(url, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -106,7 +165,7 @@ export const del = async (url, config = {}, onSuccess = null, onError = null) =>
 // 封装 PATCH 请求
 export const patch = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await httpClient.patch(url, data, config);
+        const response = await mockHttpClient.patch(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -129,7 +188,7 @@ export const uploadImage = async (url, file, additionalData = {}, config = {}, o
         }
 
         // 需要确保 Content-Type 被设置为 multipart/form-data
-        const response = await httpClient.post(url, formData, {
+        const response = await mockHttpClient.post(url, formData, {
             ...config,
             headers: {
                 ...config.headers,
@@ -145,5 +204,5 @@ export const uploadImage = async (url, file, additionalData = {}, config = {}, o
     }
 };
 
-// 导出 httpClient 以便在需要的时候直接使用 axios 实例
-export default httpClient;
+// 导出 mockHttpClient 以便在需要的时候直接使用
+export default mockHttpClient;

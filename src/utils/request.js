@@ -112,12 +112,10 @@ httpClient.interceptors.response.use(
     }
 );
 
-import { mockHttpClient } from './apiManager';
-
 // 封装 GET 请求
 export const get = async (url, params = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await mockHttpClient.get(url, { params, ...config });
+        const response = await httpClient.get(url, { params, ...config });
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -129,7 +127,7 @@ export const get = async (url, params = {}, config = {}, onSuccess = null, onErr
 // 封装 POST 请求
 export const post = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await mockHttpClient.post(url, data, config);
+        const response = await httpClient.post(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -141,7 +139,7 @@ export const post = async (url, data = {}, config = {}, onSuccess = null, onErro
 // 封装 PUT 请求
 export const put = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await mockHttpClient.put(url, data, config);
+        const response = await httpClient.put(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -153,7 +151,7 @@ export const put = async (url, data = {}, config = {}, onSuccess = null, onError
 // 封装 DELETE 请求
 export const del = async (url, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await mockHttpClient.delete(url, config);
+        const response = await httpClient.delete(url, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -165,7 +163,7 @@ export const del = async (url, config = {}, onSuccess = null, onError = null) =>
 // 封装 PATCH 请求
 export const patch = async (url, data = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const response = await mockHttpClient.patch(url, data, config);
+        const response = await httpClient.patch(url, data, config);
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
@@ -188,7 +186,7 @@ export const uploadImage = async (url, file, additionalData = {}, config = {}, o
         }
 
         // 需要确保 Content-Type 被设置为 multipart/form-data
-        const response = await mockHttpClient.post(url, formData, {
+        const response = await httpClient.post(url, formData, {
             ...config,
             headers: {
                 ...config.headers,
@@ -204,5 +202,5 @@ export const uploadImage = async (url, file, additionalData = {}, config = {}, o
     }
 };
 
-// 导出 mockHttpClient 以便在需要的时候直接使用
-export default mockHttpClient;
+// 导出 httpClient 以便在需要的时候直接使用
+export default httpClient;

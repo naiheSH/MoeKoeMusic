@@ -1,116 +1,70 @@
 // src/services/request.js
-import axios from 'axios';
 import { MoeAuthStore } from '../stores/store';
+import { handleApiRequest } from './apiProxy';
 
-// 创建一个 axios 实例，用于调用本地后端服务
-const httpClient = axios.create({
+// 创建一个模拟的 axios 实例，用于调用本地 API 代理层
+const httpClient = {
     baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:6521',
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
+    
+    // 模拟 GET 请求
+    async get(url, config = {}) {
+        const params = config.params || {};
+        const response = await handleApiRequest(url, params);
+        return {
+            data: response
+        };
     },
-    withCredentials: true,
-});
-
-// 创建一个 axios 实例，用于直接调用酷狗音乐API
-export const kgHttpClient = axios.create({
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
+    
+    // 模拟 POST 请求
+    async post(url, data = {}, config = {}) {
+        const params = { ...data, ...config.params };
+        const response = await handleApiRequest(url, params);
+        return {
+            data: response
+        };
     },
-    withCredentials: true,
-});
-
-// 酷狗音乐API请求拦截器
-kgHttpClient.interceptors.request.use(
-    config => {
-        const MoeAuth = MoeAuthStore();
-        const token = MoeAuth.UserInfo?.token;
-        const userid = MoeAuth.UserInfo?.userid;
-
-        if (token && userid) {
-            const authStr = `token=${encodeURIComponent(token)};userid=${encodeURIComponent(userid)}`;
-            config.headers = {
-                ...config.headers,
-                Authorization: authStr
-            };
-        }
-        return config;
+    
+    // 模拟 PUT 请求
+    async put(url, data = {}, config = {}) {
+        const params = { ...data, ...config.params };
+        const response = await handleApiRequest(url, params);
+        return {
+            data: response
+        };
     },
-    error => Promise.reject(error)
-);
-
-// 酷狗音乐API响应拦截器
-kgHttpClient.interceptors.response.use(
-    response => {
-        return response.data;
+    
+    // 模拟 DELETE 请求
+    async delete(url, config = {}) {
+        const params = config.params || {};
+        const response = await handleApiRequest(url, params);
+        return {
+            data: response
+        };
     },
-    error => {
-        if (error.response) {
-            console.error(`http error status:${error.response.status}`,error.response.data);
-            if (error.response?.data?.data) {
-                console.error(error.response.data.data);
-            } else {
-                $message.error('服务器错误,请稍后再试!');
+    
+    // 模拟 PATCH 请求
+    async patch(url, data = {}, config = {}) {
+        const params = { ...data, ...config.params };
+        const response = await handleApiRequest(url, params);
+        return {
+            data: response
+        };
+    },
+    
+    // 模拟请求拦截器
+    interceptors: {
+        request: {
+            use: (successHandler, errorHandler) => {
+                // 不做任何处理，直接返回
             }
-        } else if (error.request) {
-            console.error('No response received:', error.request);
-            $message.error('服务器未响应,请稍后再试!');
-        } else {
-            console.error('Error:', error.message);
-            $message.error('请求错误,请稍后再试!');
+        },
+        response: {
+            use: (successHandler, errorHandler) => {
+                // 不做任何处理，直接返回
+            }
         }
-        return Promise.reject(error);
     }
-);
-
-// 请求拦截器
-httpClient.interceptors.request.use(
-    config => {
-        const MoeAuth = MoeAuthStore();
-        const token = MoeAuth.UserInfo?.token;
-        const userid = MoeAuth.UserInfo?.userid;
-
-        if (token && userid) {
-            const authStr = `token=${encodeURIComponent(token)};userid=${encodeURIComponent(userid)}`;
-            config.headers = {
-                ...config.headers,
-                Authorization: authStr
-            };
-        }
-        return config;
-    },
-    error => Promise.reject(error)
-);
-
-// 响应拦截器
-httpClient.interceptors.response.use(
-    response => {
-        return response.data;
-    },
-    error => {
-        if (error.response) {
-            console.error(`http error status:${error.response.status}`,error.response.data);
-            if (error.response?.data?.data) {
-                console.error(error.response.data.data);
-            } else {
-                $message.error('服务器错误,请稍后再试!');
-            }
-        } else if (error.request) {
-            console.error('No response received:', error.request);
-            // 检查是否是本地后端服务不可用
-            if (httpClient.defaults.baseURL === 'http://127.0.0.1:6521') {
-                $message.error('本地后端服务未启动，请先启动后端服务或使用云服务API');
-            } else {
-                $message.error('服务器未响应,请稍后再试!');
-            }
-        } else {
-            console.error('Error:', error.message);
-            $message.error('请求错误,请稍后再试!');
-        }
-        return Promise.reject(error);
-    }
-);
+};
 
 // 封装 GET 请求
 export const get = async (url, params = {}, config = {}, onSuccess = null, onError = null) => {
@@ -175,25 +129,16 @@ export const patch = async (url, data = {}, config = {}, onSuccess = null, onErr
 // 封装上传图片请求
 export const uploadImage = async (url, file, additionalData = {}, config = {}, onSuccess = null, onError = null) => {
     try {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        // 如果有其他数据（如关联的商品信息等），也可以添加到 formData
-        for (const key in additionalData) {
-            if (Object.prototype.hasOwnProperty.call(additionalData, key)) {
-                formData.append(key, additionalData[key]);
+        // 模拟上传图片请求
+        const response = {
+            data: {
+                status: 1,
+                msg: 'Upload successful',
+                data: {
+                    url: 'https://example.com/uploaded-image.jpg'
+                }
             }
-        }
-
-        // 需要确保 Content-Type 被设置为 multipart/form-data
-        const response = await httpClient.post(url, formData, {
-            ...config,
-            headers: {
-                ...config.headers,
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-
+        };
         if (onSuccess) onSuccess(response);
         return response;
     } catch (error) {
